@@ -19,6 +19,7 @@ var (
 	threads          int
 	stopOnSuccess    bool
 	userAsPass       = false
+	tcpDNS           bool
 
 	downgrade bool
 	hashFileName string
@@ -40,7 +41,8 @@ func setupSession(cmd *cobra.Command, args []string) {
 		Verbose:          verbose,
 		SafeMode:         safe,
 		HashFilename:     hashFileName,
-		Downgrade: downgrade,
+		Downgrade:        downgrade,
+		TCPDNS:           tcpDNS,
 	}
 	k, err := session.NewKerbruteSession(kOptions)
 	if err != nil {

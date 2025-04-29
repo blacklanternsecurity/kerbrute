@@ -16,6 +16,7 @@ import (
 
 const krb5ConfigTemplateDNS = `[libdefaults]
 dns_lookup_kdc = true
+{{if .TCPDNS}}dns_lookup_tcp = true{{end}}
 default_realm = {{.Realm}}
 `
 
@@ -47,6 +48,7 @@ type KerbruteSessionOptions struct {
 	SafeMode bool
 	Downgrade bool
 	HashFilename string
+	TCPDNS bool
 	logger *util.Logger
 }
 
@@ -71,7 +73,7 @@ func NewKerbruteSession(options KerbruteSessionOptions) (k KerbruteSession, err 
 	}
 
 	realm := strings.ToUpper(options.Domain)
-	configstring := buildKrb5Template(realm, options.DomainController)
+	configstring := buildKrb5Template(realm, options.DomainController, options.TCPDNS)
 	Config, err := kconfig.NewFromString(configstring)
 	if options.Downgrade {
 		Config.LibDefaults.DefaultTktEnctypeIDs = []int32{23} // downgrade to arcfour-hmac-md5 for crackable AS-REPs
@@ -99,10 +101,11 @@ func NewKerbruteSession(options KerbruteSessionOptions) (k KerbruteSession, err 
 
 }
 
-func buildKrb5Template(realm, domainController string) string {
+func buildKrb5Template(realm, domainController string, tcpDNS bool) string {
 	data := map[string]interface{}{
 		"Realm":            realm,
 		"DomainController": domainController,
+		"TCPDNS":           tcpDNS,
 	}
 	var kTemplate string
 	if domainController == "" {
